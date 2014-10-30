@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+        http://www.springframework.org/schema/aop 
+  		http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+  		http://www.springframework.org/schema/tx 
+        http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+
+	<!-- DAO层配置↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ -->
+	<!-- **************************************************************************************************** -->
+	<!-- 
+		DAO层和数据库交互, 所以要配置
+		1.数据源
+		2.交互方式(是用Spring JDBC,还是Hibernate等等)
+	 -->
+	
+	<!-- 扫描com.sylar.dao包下的类，将带注解的类自动注入到容器内  -->
+	<context:component-scan base-package="com.sylar.dao" />
+	
+	<!-- 载入属性文件datasource.properties -->
+	<context:property-placeholder location="classpath:datasource.properties" />
+	
+	<!-- 配置一个数据源bean，使用DBCP数据源 -->
+	<!-- ①连接Access数据库 -->
+	<!-- 
+	<bean id="dataSource2" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+         <property name="driverClassName" value="sun.jdbc.odbc.JdbcOdbcDriver" />
+         <property name="url" value="jdbc:odbc:Driver={Microsoft Access Driver (*.mdb)};DBQ=C:\Program Files\Apache Software Foundation\Tomcat 6.0\webapps\main.mdb" />
+         <property name="username" value="" />
+         <property name="password" value="" />
+         <property name="maxActive" value="100" />
+         <property name="maxIdle"  value="30" />
+         <property name="maxWait" value="500" />
+         <property name="defaultAutoCommit" value="true" />
+    </bean> -->
+	<!-- ②连接MySQL数据库 -->
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${mysql.jdbc.driverClassName}" />
+		<property name="url" value="${mysql.jdbc.url}" />
+		<property name="username" value="${mysql.jdbc.username}" />
+		<property name="password" value="${mysql.jdbc.password}" />
+	</bean>
+	
+	<!-- DAO层可以使用Spring JDBC，也可以集成Hibernate框架，如下面 ①和②所示-->
+	<!-- 对应要使用各自的事务管理器 -->
+	
+	<!-- ①配置spring jdbc的jdbcTemplate -->
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate" p:dataSource-ref="dataSource" />
+		
+	<!-- ②配置一个Hibernate的SessionFatcory -->
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean" >
+    	<property name="dataSource" ref="dataSource"/>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">${hibernate.dialect}</prop>
+                <prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+            </props>
+        </property>
+        <!-- 基于XML映射 -->
+        <!--
+        <property name="mappingLocations">
+        	<list>
+        		<value>classpath*:/com/sylar/entity/Test.hbm.xml</value>
+        	</list>
+        </property>
+        -->
+        <!-- 基于注解映射 -->
+        <property name="annotatedClasses">
+        	<list>
+        		<value>com.sylar.entity.Users</value>
+        		<value>com.sylar.entity.Sms</value>
+        		<value>com.sylar.entity.Usergroup</value>
+        	</list>
+        </property>
+  	</bean>	
+	<!-- **************************************************************************************************** -->
+	<!-- DAO层配置↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ -->	
+		
+	
+	
+	
+	<!-- Service层配置↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ -->
+	<!-- **************************************************************************************************** -->
+	<!-- 
+		Service层可以配置事务，有两种方法：
+		一、AOP代理方式：
+			1.配置事务管理器(有Spring JDBC的，也有Hibernate的等等)
+			2.配置一个事务增强(Advice),事务增强需要用到1中配置的事务管理器
+			3.配置AOP代理，将事务增强织入到Service层的bean中
+			
+		二、	@Transaction注解，注入事务管理器：
+			1.配置tx:annotation-driven标签
+			2.Service类上标注@Transaction注解
+	 -->
+	
+	<!-- 扫描com.sylar.server包下的类，将带注解的类自动注入到容器内  -->
+	<context:component-scan base-package="com.sylar.service" />
+	
+	<!-- 方法一：AOP方式 -->
+	<!-- ①配置一个Spring JDBC事务管理器bean -->
+	<bean id="txManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
+		p:dataSource-ref="dataSource" />
+	
+	<!-- ②配置一个Hibernate事务管理器bean -->
+	<bean id="txManager2" class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+    
+    <!-- 配置一个事务增强 -->
+    <tx:advice id="txAdvice" transaction-manager="txManager2">
+        <tx:attributes>
+            <tx:method name="save*" propagation="REQUIRED" />
+            <tx:method name="add*" propagation="REQUIRED" />
+            <tx:method name="create*" propagation="REQUIRED" />
+            <tx:method name="insert*" propagation="REQUIRED" />
+            <tx:method name="update*" propagation="REQUIRED" />
+            <tx:method name="merge*" propagation="REQUIRED" />
+            <tx:method name="del*" propagation="REQUIRED" />
+            <tx:method name="remove*" propagation="REQUIRED" />
+            <tx:method name="put*" propagation="REQUIRED" />
+            <tx:method name="use*" propagation="REQUIRED"/>
+            <!--hibernate4必须配置为开启事务 否则 getCurrentSession()获取不到-->
+            <tx:method name="get*" propagation="REQUIRED" read-only="true" />
+            <tx:method name="count*" propagation="REQUIRED" read-only="true" />
+            <tx:method name="find*" propagation="REQUIRED" read-only="true" />
+            <tx:method name="list*" propagation="REQUIRED" read-only="true" />
+            <tx:method name="*" read-only="true" />
+        </tx:attributes>
+    </tx:advice>
+		
+	<!-- AOP代理，扫描service bean，对其所有方法织入事务增强 -->	
+	<aop:config proxy-target-class="true">
+		<aop:pointcut id="txPointcut" expression="execution(* com.sylar.service..*(..))" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPointcut" />
+	</aop:config>
+	
+	<!--方法二：@Transaction注解-->
+	<!--另外种织入事务的方式 ：
+		对标注@Transaction注解的Bean进行加工，以织入事务管理切面；
+		Spring建议在具体业务类上标注@Transaction注解；
+		transaction-manager若未指定，默认查找名为transactionManager的事务管理器 -->
+	<tx:annotation-driven transaction-manager="txManager2" />
+	
+	<!-- **************************************************************************************************** -->
+	<!-- Service层配置↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ -->
+	
+</beans>

@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+        http://www.springframework.org/schema/mvc 
+        http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd
+        http://www.springframework.org/schema/aop 
+  		http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+  		http://www.springframework.org/schema/tx 
+        http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.1.xsd
+        http://www.springframework.org/schema/util
+        http://www.springframework.org/schema/util/spring-util-3.1.xsd">
+
+
+
+	<!-- 
+		配置默认DefaultAnnotationHandlerMapping和AnnotationMethodHandlerAdapter,
+		如果直接使用下述<mvc:annotation-driven />，表示使用默认的[注解处理器映射]、[注解方法处理器适配器].
+		默认的[注解方法处理器适配器]有5个适配器.
+		但我们自定义配置了这两者, 所以就不用默认的了.-->
+	<!--
+	<mvc:annotation-driven /> -->
+
+
+	<!-- HandlerMapping配置↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ -->
+	<!-- **************************************************************************************************** -->
+	<!--  
+		HandlerMapping接口 - 处理请求的映射,其实现类:
+			1. DefaultAnnotationHandlerMapping:通过@RequestMapping注解, 把一个URL映射到Controller类上.
+			2. SimpleUrlHandlerMapping:通过XML配置文件, 把一个URL映射到Controller;
+		配置拦截器,也就是在各自的HandlerMapping类的interceptors属性里注入Bean -->
+	
+	
+	<!-- 扫描com.sylar.action包下的类，将带注解的类自动注入到容器内  -->
+	<!-- 1. [核心分发器](DispatcherServlet)会根据@RequestMapping将请求交由对应的控制器执行 -->
+	<context:component-scan base-package="com.sylar.action" />
+	
+	
+	<!-- 2. 通过XML配置文件, 把一个URL映射到Controller-->
+	<!-- 
+		<bean id="urlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+			<property name="mappings">
+				<props>
+					<prop key="sample.do">sampleMultiActionController</prop>
+				</props>
+			</property>
+			<property name="interceptors">
+               <list>
+                  <ref bean="controllerInterceptor" />
+               </list>
+            </property>
+		</bean>  -->
+	
+	<!-- **************************************************************************************************** -->
+	<!-- HandlerMapping配置↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ -->
+	
+	
+	
+	<!-- 拦截器配置↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ -->
+	<!-- **************************************************************************************************** -->
+	<!-- 
+		一. Controller是注解方式的:
+			1. 以Bean标签配置;
+			2. 以<mvc:interceptors>标签配置.
+		二. Controller是XML配置的:
+			(见上述[Spring MVC配置]节说明)
+	 -->
+	 
+	<!-- 1. 以Bean标签配置-->  
+	<!-- 
+    <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping" >  
+        <property name="interceptors">  
+           <list>  
+              <ref bean="commonInterceptor"/>  
+           </list>  
+        </property>  
+    </bean>
+	<bean id="commonInterceptor" class="com.zother.Myinterceptor" /> -->
+
+    
+	<!-- 2. 以<mvc:interceptors>标签配置 -->
+	<!--
+	<mvc:interceptors>   
+    	<mvc:interceptor>   
+        	<mvc:mapping path="/interceptor/*" />   
+        	<bean class="com.zother.Myinterceptor" />   
+    	</mvc:interceptor>   
+	</mvc:interceptors>
+	-->
+	<!-- **************************************************************************************************** -->
+	<!-- 拦截器配置↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ -->
+	
+	
+	
+	<!-- 配置视图解析器 -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/WEB-INF/views/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	
+	
+	<!-- AnnotationMethodHandlerAdapter配置↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ -->
+	<!-- **************************************************************************************************** -->
+	<!--
+		配置[注解方法处理器适配器]的[信息转换器]，自动覆盖默认的
+		见《Spring3.x企业开发》P523，将[请求信息]转为对象,将对象输出为[响应信息]
+		也就是@Controller类的@RequestMapping方法，@RequestBody/@ResponseBody注解，AJAX常用的
+	-->
+	<!-- 装配其他类型的HttpMessageConverter -->
+	<bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+		<property name="messageConverters" ref="messageConverters" />
+	</bean>
+	<!-- HttpMessageConverter列表，注入到上面的 适配器 的[信息转换器]属性中 -->
+	<util:list id="messageConverters">
+		<!-- 使用@ResponseBody注解的方法，其返回值类型对应各自的信息转换器 -->
+		<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+			<!-- 
+				StringHttpMessageConverter编码属性注入utf-8 
+				此举为解决[响应信息]返回字符串汉字乱码问题 (Ajax方式用的)
+			-->
+			<property name="supportedMediaTypes">
+				<list>
+					<value>text/html;charset=UTF-8</value>
+				</list>
+			</property>
+		</bean>
+		<bean class="org.springframework.http.converter.BufferedImageHttpMessageConverter" />
+		<bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter">
+			<!-- 
+				[字节数组消息转换器]支持的HTTP Content-Type注入属性image/jpeg 
+				此举使得返回byte[]的@ResponseBody方法，其[响应信息]设置为图像，客户端直接显示
+				按理说这应该交由BufferedImage，不过报406错误，也许是网络传输得使用字节数组吧
+			-->
+			<property name="supportedMediaTypes">
+				<list>
+					<value>image/jpeg</value>
+				</list>
+			</property>
+		</bean>
+		<bean class="org.springframework.http.converter.xml.XmlAwareFormHttpMessageConverter" />
+		<!-- 
+			此转换器用于将(任意)对象和JSON互转，依赖2个JAR包：
+			org.codehaus.jackson.jar
+			org.codehaus.jackson.mapper.jar
+		 -->
+		<bean class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter">
+			<property name="supportedMediaTypes">
+				<list>
+					<value>application/json;charset=UTF-8</value>
+				</list>
+			</property>
+		</bean>
+	</util:list>
+	<!-- **************************************************************************************************** -->
+	<!-- AnnotationMethodHandlerAdapter配置↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ -->
+
+	<!-- 文件上传相关 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize" value="10000000" />
+		<property name="defaultEncoding" value="UTF-8" />
+	</bean>
+
+	<!-- 控制器异常处理 -->
+	<bean id="exceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+		<property name="exceptionMappings">
+			<props>
+				<prop key="java.lang.Exception">error</prop>
+			</props>
+		</property>
+	</bean>
+	
+</beans>
+        
